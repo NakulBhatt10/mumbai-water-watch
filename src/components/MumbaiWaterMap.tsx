@@ -8,6 +8,18 @@ type MumbaiWaterMapProps = {
   observations: WaterObservation[];
 };
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => {
+    switch (character) {
+      case "&": return "&amp;";
+      case "<": return "&lt;";
+      case ">": return "&gt;";
+      case '"': return "&quot;";
+      default: return "&#39;";
+    }
+  });
+}
+
 export function MumbaiWaterMap({ observations }: MumbaiWaterMapProps) {
   const elementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -57,11 +69,11 @@ export function MumbaiWaterMap({ observations }: MumbaiWaterMapProps) {
 
     byCoordinate.forEach((group) => {
       const first = group[0];
-      if (!first) return;
-      const area = L.Util.escapeHTML(first.area);
+      if (!first || first.latitude === null || first.longitude === null) return;
+      const area = escapeHtml(first.area);
       const readings = group
         .slice(0, 5)
-        .map((item) => `${L.Util.escapeHTML(item.measure)}: ${L.Util.escapeHTML(item.value)}${item.unit ? ` ${L.Util.escapeHTML(item.unit)}` : ""}`)
+        .map((item) => `${escapeHtml(item.measure)}: ${escapeHtml(item.value)}${item.unit ? ` ${escapeHtml(item.unit)}` : ""}`)
         .join("<br>");
       const extraReadings = group.length > 5 ? `<br>+${group.length - 5} more readings` : "";
       const marker = L.circleMarker([first.latitude, first.longitude], {
